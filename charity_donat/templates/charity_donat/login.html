@@ -2,9 +2,10 @@
 {% load static %}
   <body>
   {% block content %}
-    <section class="login-page">
+    <section id="login-page" class="login-page">
       <h2>Zaloguj się</h2>
-      <form>
+      <form action="" method="Post">
+          {% csrf_token %}
         <div class="form-group">
           <input type="email" name="email" placeholder="Email" />
         </div>
@@ -15,32 +16,12 @@
 
         <div class="form-group form-group--buttons">
           <a href="#" class="btn btn--without-border">Załóż konto</a>      
-          <button class="btn" type="submit">Zaloguj się</button> 
+          <button id="zaloguj sie" class="btn" type="submit">Zaloguj się</button>
         </div>
       </form>
     </section>
 
-    <footer>
-        <div class="contact">
-          <h2>Skontaktuj się z nami</h2>
-          <h3>Formularz kontaktowy</h3>
-          <form>
-            <div class="form-group form-group--50">
-              <input type="text" name="name" placeholder="Imię" />
-            </div>
-            <div class="form-group form-group--50">
-              <input type="text" name="surname" placeholder="Nazwisko" />
-            </div>
-  
-            <div class="form-group">
-              <textarea name="message" placeholder="Wiadomość" rows="1"></textarea>
-            </div>
-  
-            <button class="btn" type="submit">Wyślij</button> 
-          </form>
-        </div>
 {% include "charity_donat/icons.html"%}
-      </footer>
   {% endblock %}
   </body>
 </html>

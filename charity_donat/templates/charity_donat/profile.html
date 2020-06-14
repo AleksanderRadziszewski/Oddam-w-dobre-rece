@@ -1,0 +1,21 @@
+{% extends "base.html" %}
+{% load static%}
+{% block content %}
+    <h4 style="font-size: medium">Your personality data:</h4>
+<ul style="font-size: medium">
+    <li style="font-size: medium">{{ profile.first_name}}</li>
+    <li style="font-size: medium">{{ profile.last_name}}</li>
+    <li style="font-size: medium">{{ profile.email}}</li>
+</ul>
+    <h4 style="font-size: medium">Your donations:</h4>
+    <ul>
+    {% for donation in user_donation_list %}
+        <li style="font-size: medium">Amount: {{ donation.quantity}}</li>
+        <li style="font-size: medium">Institution: {{ donation.institution}}</li>
+        {% for category in donation.categories.all %}
+        <li style="font-size: medium">Category:{{category}}</li>
+            {% endfor %}
+        <li style="font-size: medium">Pick up date,time: {{ donation.pick_up_date}} {{ donation.pick_up_time }}</li><br>
+    {% endfor %}
+    </ul>
+{% endblock %}
