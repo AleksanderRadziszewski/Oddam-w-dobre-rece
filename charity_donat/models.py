@@ -1,5 +1,6 @@
 from django.db import models
 from django.contrib.auth.models import User
+from datetime import datetime,date
 
 fundacja=1
 organizacja_pozarzadowa=2
@@ -35,10 +36,10 @@ class Donation(models.Model):
     phone_number=models.IntegerField()
     city=models.CharField(max_length=20)
     zip_code=models.CharField(max_length=12)
-    pick_up_date=models.DateField()
-    pick_up_time=models.DateTimeField()
+    pick_up_date=models.DateField(null=True)
+    pick_up_time=models.TimeField(null=True)
     pick_up_comment=models.TextField()
-    user=models.OneToOneField(User, on_delete=models.CASCADE)
+    user=models.ForeignKey(User, on_delete=models.CASCADE)
 
 
 
