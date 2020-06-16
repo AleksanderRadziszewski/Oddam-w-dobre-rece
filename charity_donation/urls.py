@@ -26,6 +26,6 @@ urlpatterns = [
     path("add_donation/", views.AddDonationView.as_view(), name="add_donation"),
     path("get_institutions/", views.get_checked, name="get_checked"),
     path("form_confirmation/", views.FormConfirmationView.as_view(), name="form_confirmation"),
-    path("profile/", views.ProfileView.as_view(), name="profile"),
+    path("profile/", views.ArchiveView.as_view(), name="profile"),
 
 ]

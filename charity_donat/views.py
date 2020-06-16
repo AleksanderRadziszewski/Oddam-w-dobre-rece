@@ -110,11 +110,30 @@ def get_checked(request):
         "institutions":intstitutions
     })
 
-class ProfileView(View):
-    def get(self,request):
-        profile=request.user
-        user_donation_list=Donation.objects.filter(user=request.user)
+
+
+class ArchiveView(View):
+    def get(self, request ):
+        profile = request.user
+        dotation = Donation.objects.filter(user=request.user)
+        archaives = dotation.filter(is_taken=True)
+        none_archived = dotation.filter(is_taken=False)
         return render(request,"charity_donat/profile.html",{"profile":profile,
-                                                            "user_donation_list":user_donation_list})
+                                                                    "archaives":archaives,
+                                                                     "non_archaived":none_archived})
+    def post(self,request):
+        donation_id=request.POST.get("donation_id")
+        donation=Donation.objects.get(id=donation_id)
+        if donation is not None:
+            if donation.is_taken==False:
+                donation.is_taken=True
+                donation.save()
+                return redirect("/profile/#donations")
+            else:
+                donation.is_taken=False
+                donation.save()
+                return redirect("/profile/#donations")
+
+
 
 # Create your views here.
