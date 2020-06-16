@@ -375,6 +375,45 @@ document.addEventListener("DOMContentLoaded", function () {
 
         FormSteps(form);
     }
+
+    function getCookie(name) {
+        var cookieValue = null;
+        if (document.cookie && document.cookie !== '') {
+            var cookies = document.cookie.split(';');
+            for (var i = 0; i < cookies.length; i++) {
+                var cookie = cookies[i].trim();
+                // Does this cookie string begin with the name we want?
+                if (cookie.substring(0, name.length + 1) === (name + '=')) {
+                    cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
+                    break;
+                }
+            }
+        }
+        return cookieValue;
+    }
+    var buttons  =$("button#niezabranyzabrany");
+    buttons.on("click", function () {
+        var donation_id = $(this).data("id");
+        var donations=$("#donations");
+        var csrftoken = getCookie('csrftoken');
+
+        $.post({
+            url: "/profile/",
+            data: {
+                csrfmiddlewaretoken: csrftoken,
+                donation_id: donation_id
+            }, function() {
+                console.log("poszło")
+            }
+        }).done(function (response) {
+            donations.html(response)
+            location.reload()
+
+        }).fail(function (e) {
+            alert("Nieposzło");
+            console.log(e)
+        });
+    });
 })
 ;
 

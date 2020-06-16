@@ -7,15 +7,33 @@
     <li style="font-size: medium">{{ profile.last_name}}</li>
     <li style="font-size: medium">{{ profile.email}}</li>
 </ul>
-    <h4 style="font-size: medium">Your donations:</h4>
-    <ul>
-    {% for donation in user_donation_list %}
-        <li style="font-size: medium">Amount: {{ donation.quantity}}</li>
-        <li style="font-size: medium">Institution: {{ donation.institution}}</li>
-        {% for category in donation.categories.all %}
+    <h4 id="donations" style="font-size: medium">Your donations:</h4>
+{% for item_non_archaived in non_archaived%}
+<ul id="donation-list-archive" data-id="{{item_non_archaived.id}}">
+        <li style="font-size: medium">Amount: {{ item_non_archaived.quantity}}</li>
+        <li style="font-size: medium">Institution: {{ item_non_archaived.institution}} <button id="niezabranyzabrany" data-id="{{item_non_archaived.id}}" class="btn--without-border active">zabrany/niezabrany</button></li>
+        {% for category in item_non_archaived.categories.all %}
         <li style="font-size: medium">Category:{{category}}</li>
-            {% endfor %}
-        <li style="font-size: medium">Pick up date,time: {{ donation.pick_up_date}} {{ donation.pick_up_time }}</li><br>
-    {% endfor %}
+      {% endfor %}
+        <li style="font-size: medium">Pick up date,time: {{ item_non_archaived.pick_up_date}} {{ item_non_archaived.pick_up_time }}</li>
+        <li style="font-size: medium">Is taken?: <span id="donation-is-taken">{{ item_non_archaived.is_taken}}</span></li>
     </ul>
+{% endfor %}
+
+<h4 id="archive" style="font-size: medium">Your archive:</h4>
+   {% for archaive in archaives %}
+       <b>
+    <ul id="donation-list-archive" data-id="{{archaive.id}}">
+        <li style="font-size: medium">Amount: {{ archaive.quantity}}</li>
+        <li style="font-size: medium">Institution: {{ archaive.institution}} </li>
+        {% for category in archaive.categories.all %}
+        <li style="font-size: medium">Category:{{category}}</li>
+      {% endfor %}
+        <li style="font-size: medium">Pick up date,time: {{ archaive.pick_up_date}} {{ archaive.pick_up_time }}</li>
+        <li style="font-size: medium">Is taken?: <span id="donation-is-taken">{{ archaive.is_taken}}</span></li>
+    </ul>
+       </b>
+{% endfor %}
+
 {% endblock %}
+
