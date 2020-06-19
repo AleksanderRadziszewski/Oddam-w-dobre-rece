@@ -3,9 +3,9 @@
 {% block content %}
     <h4 style="font-size: medium">Your personality data:</h4>
 <ul style="font-size: medium">
-    <li style="font-size: medium">{{ profile.first_name}}</li>
-    <li style="font-size: medium">{{ profile.last_name}}</li>
-    <li style="font-size: medium">{{ profile.email}}</li>
+    <li style="font-size: medium">{{ user.first_name}}</li>
+    <li style="font-size: medium">{{ user.last_name}}</li>
+    <li style="font-size: medium">{{ user.email}}</li>
 </ul>
     <h4 id="donations" style="font-size: medium">Your donations:</h4>
 {% for item_non_archaived in non_archaived%}

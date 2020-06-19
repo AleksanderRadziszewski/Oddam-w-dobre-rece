@@ -1,8 +1,16 @@
 from django.contrib.auth import login, authenticate
+from django.contrib.auth.decorators import login_required
+from django.contrib.auth.mixins import LoginRequiredMixin
 from django.contrib.auth.models import User
 from django.contrib.auth.views import LogoutView
+from django.core.exceptions import ValidationError
+from django.core.paginator import Paginator
 from django.shortcuts import render, redirect
+from django.views.generic import UpdateView, FormView
 from django.views.generic.base import View
+from django.contrib import messages
+from django.contrib.auth.password_validation import validate_password
+from charity_donat.forms import ChangePasswordForm, ProfileEditForm,validate_passwords
 from charity_donat.models import Donation, Institution, Category
 from django.db.models import Sum
 
@@ -15,6 +23,9 @@ class LandingPageView(View):
         categories=Category.objects.all()
         category_money=categories[2]
         institutions_fund=Institution.objects.filter(type=1)
+        paginator_fund=Paginator(institutions_fund,1)
+        page_number_fun=request.GET.get("page")
+        page_obj_fun=paginator_fund.get_page(page_number_fun)
         institutions_non_gov= Institution.objects.filter(type=2)
         institutions_local=Institution.objects.filter(type=3)
         for institution_fund in institutions_fund:
@@ -24,11 +35,16 @@ class LandingPageView(View):
             institution__non_gov.categories.add(category_money)
         for institution_local in institutions_local:
             institution_local.categories.add(category_money)
+
+
         return render(request,"charity_donat/index.html",{"total_quantity_bags":total_quantity_bags,
                                                           "total_quantity_institutions":total_quantity_institutions,
                                                           "institutions_fund":institutions_fund,
                                                           "institutions_non_gov":institutions_non_gov,
-                                                          "institutions_local":institutions_local})
+                                                          "institutions_local":institutions_local,
+                                                          "page_obj_fun":page_obj_fun
+                                                                            })
+
 
 class LoginView(View):
     def get(self,request):
@@ -49,7 +65,9 @@ class RegisterView(View):
         last_name=request.POST.get("surname")
         username = request.POST.get("email")
         password=request.POST.get("password")
-        user = User.objects.create(first_name=first_name,last_name=last_name,username=username)
+        password2 = request.POST.get("password2")
+        validate_password(password,password_validators=validate_passwords(password,password2))
+        user = User.objects.create(first_name=first_name, last_name=last_name, username=username)
         user.set_password(password)
         user.save()
         return redirect("/login/")
@@ -114,13 +132,12 @@ def get_checked(request):
 
 class ArchiveView(View):
     def get(self, request ):
-        profile = request.user
         dotation = Donation.objects.filter(user=request.user)
         archaives = dotation.filter(is_taken=True)
         none_archived = dotation.filter(is_taken=False)
-        return render(request,"charity_donat/profile.html",{"profile":profile,
-                                                                    "archaives":archaives,
-                                                                     "non_archaived":none_archived})
+        return render(request,"charity_donat/profile.html",{
+                                                            "archaives":archaives,
+                                                            "non_archaived":none_archived})
     def post(self,request):
         donation_id=request.POST.get("donation_id")
         donation=Donation.objects.get(id=donation_id)
@@ -133,6 +150,41 @@ class ArchiveView(View):
                 donation.is_taken=False
                 donation.save()
                 return redirect("/profile/#donations")
+
+class ProfileEditView(LoginRequiredMixin,View):
+    def get(self,request):
+        form=ProfileEditForm(initial={
+            "first_name":request.user.first_name,
+            "last_name": request.user.last_name,
+            "email": request.user.email
+        })
+        return render(request,"charity_donat/add.html",{"form":form})
+    def post(self,request):
+        form=ProfileEditForm(request.POST)
+        if form.is_valid():
+            user=User.objects.get(pk=request.user.id)
+            if user.check_password(form.cleaned_data.get("password")):
+                user.first_name=form.cleaned_data.get("first_name")
+                user.last_name = form.cleaned_data.get("last_name")
+                user.email = form.cleaned_data.get("email")
+                user.save()
+                messages.success(request,"Your new data have been updated correctly!")
+            messages.error(request, "Your new data have't been updated correctly!")
+        return render(request, "charity_donat/add.html", {"form": form,
+                                                          })
+
+
+class CreateProfileView(FormView):
+    form_class = ChangePasswordForm
+    template_name = "charity_donat/change_password.html"
+    success_url = "/"
+
+    def form_valid(self, form):
+        user = self.request.user
+        user.set_password(form.cleaned_data["new_password"])
+        user.save()
+        return super().form_valid(form)
+
 
 
 
