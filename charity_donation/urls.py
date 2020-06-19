@@ -27,5 +27,7 @@ urlpatterns = [
     path("get_institutions/", views.get_checked, name="get_checked"),
     path("form_confirmation/", views.FormConfirmationView.as_view(), name="form_confirmation"),
     path("profile/", views.ArchiveView.as_view(), name="profile"),
+    path("profile_edit/", views.ProfileEditView.as_view(), name="profile_edit"),
+    path("change_password/", views.CreateProfileView.as_view(), name="change_password"),
 
 ]
