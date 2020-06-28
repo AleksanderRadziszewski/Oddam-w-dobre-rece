@@ -1,0 +1,18 @@
+
+    <ul class="help--slides-items">
+{% for institution in page.object_list %}
+        <li>
+            <div class="col">
+                <div class="title">{{ institution.name }}"</div>
+                <div class="subtitle">{{ institution.description }}</div>
+            </div>
+            <div class="col">
+                {% for ic in institution.categories.all %}
+                    <span class="text">{{ ic.name }},</span>
+                    {% endfor %}
+            </div>
+        </li>
+{% endfor %}
+    </ul>
+
+

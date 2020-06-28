@@ -28,6 +28,10 @@ urlpatterns = [
     path("form_confirmation/", views.FormConfirmationView.as_view(), name="form_confirmation"),
     path("profile/", views.ArchiveView.as_view(), name="profile"),
     path("profile_edit/", views.ProfileEditView.as_view(), name="profile_edit"),
-    path("change_password/", views.CreateProfileView.as_view(), name="change_password"),
+    path("change_password/", views.ChangePasswordView.as_view(), name="change_password"),
+    path("send_link_change_password/", views.LinkToChangePasswordView.as_view(), name="link_change_password"),
+    path("pagination_fund/", views.PaginationView.as_view(), name="pagination_fund"),
+    path("check_email/",views.CheckingEmailView.as_view(),name="check_email"),
+    path("activate/<uidb64>/<token>/", views.VeryficationRegisterView.as_view(), name="activate"),
 
 ]
