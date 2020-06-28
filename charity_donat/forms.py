@@ -30,9 +30,11 @@ class ProfileEditForm(forms.ModelForm):
         }
 
 class ChangePasswordForm(forms.Form):
-    last_password=forms.CharField(max_length=30, widget=forms.PasswordInput)
-    new_password=forms.CharField(max_length=30, widget=forms.PasswordInput)
-    new_password2=forms.CharField(max_length=30, widget=forms.PasswordInput)
+    wprowadz_haslo=forms.CharField(max_length=30, widget=forms.PasswordInput)
+    powtorz_haslo=forms.CharField(max_length=30, widget=forms.PasswordInput)
+
+class LinkToChangePasswordForm(forms.Form):
+    email = forms.EmailField(required=True)
 
     # def clean(self):
     #     super().clean()

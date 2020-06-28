@@ -1,18 +1,23 @@
 from django.contrib.auth import login, authenticate
-from django.contrib.auth.decorators import login_required
 from django.contrib.auth.mixins import LoginRequiredMixin
 from django.contrib.auth.models import User
 from django.contrib.auth.views import LogoutView
 from django.core.exceptions import ValidationError
 from django.core.paginator import Paginator
-from django.shortcuts import render, redirect
+from django.shortcuts import render, redirect,reverse
 from django.views.generic import UpdateView, FormView
 from django.views.generic.base import View
 from django.contrib import messages
 from django.contrib.auth.password_validation import validate_password
-from charity_donat.forms import ChangePasswordForm, ProfileEditForm,validate_passwords
+from charity_donat.forms import ChangePasswordForm, ProfileEditForm, validate_passwords, LinkToChangePasswordForm
 from charity_donat.models import Donation, Institution, Category
 from django.db.models import Sum
+from django.core.mail import send_mail
+from rest_framework.authtoken.models import Token
+from django.utils.encoding import force_bytes,force_text,DjangoUnicodeDecodeError
+from django.utils.http import urlsafe_base64_encode,urlsafe_base64_decode
+from django.contrib.sites.shortcuts import get_current_site
+from charity_donation.utils import token_generator
 
 class LandingPageView(View):
     def get(self,request):
@@ -22,29 +27,46 @@ class LandingPageView(View):
         total_quantity_institutions = quantity_organizations['institution__sum']
         categories=Category.objects.all()
         category_money=categories[2]
-        institutions_fund=Institution.objects.filter(type=1)
-        paginator_fund=Paginator(institutions_fund,1)
-        page_number_fun=request.GET.get("page")
-        page_obj_fun=paginator_fund.get_page(page_number_fun)
         institutions_non_gov= Institution.objects.filter(type=2)
         institutions_local=Institution.objects.filter(type=3)
+        categories = Category.objects.all()
+        institutions_fund = Institution.objects.filter(type=1)
         for institution_fund in institutions_fund:
             for category in categories:
                 institution_fund.categories.add(category)
+        number_of_items = 1
+        paginatorr = Paginator(institutions_fund, number_of_items)
+        first_page = paginatorr.page(1).object_list
+        page_range = paginatorr.page_range
+
         for institution__non_gov in institutions_non_gov:
             institution__non_gov.categories.add(category_money)
         for institution_local in institutions_local:
             institution_local.categories.add(category_money)
 
-
         return render(request,"charity_donat/index.html",{"total_quantity_bags":total_quantity_bags,
                                                           "total_quantity_institutions":total_quantity_institutions,
-                                                          "institutions_fund":institutions_fund,
+                                                          #"institutions_fund":institutions_fund,
                                                           "institutions_non_gov":institutions_non_gov,
                                                           "institutions_local":institutions_local,
-                                                          "page_obj_fun":page_obj_fun
+                                                          "first_page":first_page,
+                                                          "page_range":page_range
+
                                                                             })
 
+class PaginationView(View):
+    def get(self,request):
+        page_n=request.GET.get("page_n")
+        categories = Category.objects.all()
+        institutions_fund = Institution.objects.filter(type=1)
+        for institution_fund in institutions_fund:
+            for category in categories:
+                institution_fund.categories.add(category)
+        number_of_items = 1
+        paginatorr = Paginator(institutions_fund, number_of_items)
+        page_range = paginatorr.page_range
+        return render(request, "charity_donat/rest_api_pagination_fund.html", {"page_range":page_range,
+                                                                               "page":paginatorr.page(page_n)})
 
 class LoginView(View):
     def get(self,request):
@@ -69,8 +91,36 @@ class RegisterView(View):
         validate_password(password,password_validators=validate_passwords(password,password2))
         user = User.objects.create(first_name=first_name, last_name=last_name, username=username)
         user.set_password(password)
+        user.is_active=False
         user.save()
-        return redirect("/login/")
+        uidb64=urlsafe_base64_encode(force_bytes(user.pk))
+        domain=get_current_site(request).domain
+        link=reverse("activate",kwargs={"uidb64":uidb64,
+                                        "token":token_generator.make_token(user)})
+        # Dlaczego tu nie moge dodac text do kwargs?
+        activate_url="http://"+domain+link+"#register-form-confirmation"
+        #ciagle nie moge wejsc w ten activate_url bo ciagle nie wpasowuje sie
+        send_mail(
+            "Activate your account",
+            f"Hi {user.username}!\n Please use this link to verify your account\n" + activate_url,
+            "radziszewski.aleksander@gmail.com",
+            ["radziszewski.aleksander@gmail.com"],
+            fail_silently=False)
+        return redirect("/check_email/#mail-form-confirmation")
+
+class CheckingEmailView(View):
+    def get(self,request):
+        return render(request,"charity_donat/check_email.html")
+
+class VeryficationRegisterView(View):
+    def get(self,request,uidb64,token):
+        user_pk=urlsafe_base64_decode(uidb64)
+        user=User.objects.get(pk=user_pk)
+        token_generator.check_token(user,token)
+        user.is_active = True
+        user.save()
+        messages.success(request, "Account succcesfully created")
+        return render(request,"charity_donat/register_confirmation.html")
 
 class LogOutView(LogoutView):
     next_page = "/"
@@ -173,17 +223,49 @@ class ProfileEditView(LoginRequiredMixin,View):
         return render(request, "charity_donat/add.html", {"form": form,
                                                           })
 
-
-class CreateProfileView(FormView):
-    form_class = ChangePasswordForm
+class ChangePasswordView(FormView):
     template_name = "charity_donat/change_password.html"
+    success_url = "/login/"
+    form_class = ChangePasswordForm
+    def form_valid(self, form):
+        token=Token.objects.get(key=self.request.GET["token"])
+        if token is not None:
+            user=token.user
+            user.set_password(form.cleaned_data["wprowadz_haslo"])
+            user.save()
+            return super().form_valid(form)
+        else:
+            return"Token not found"
+
+class LinkToChangePasswordView(FormView):
+    form_class = LinkToChangePasswordForm
+    template_name = "charity_donat/link_change_password.html"
     success_url = "/"
 
+
     def form_valid(self, form):
-        user = self.request.user
-        user.set_password(form.cleaned_data["new_password"])
-        user.save()
-        return super().form_valid(form)
+        email=self.request.POST.get("email")
+        try:
+            for user in User.objects.all():
+                Token.objects.get_or_create(user=user)
+            user=User.objects.get(email=email)
+            if user is not None:
+                token =Token.objects.get(user=user).key
+                send_mail(
+                    "Reset password link",
+                    f"http://localhost:8000/change_password/?token={token}",
+                    "radziszewski.aleksander@gmail.com",
+                    ["radziszewski.aleksander@gmail.com"],
+                    fail_silently=False)
+
+                return super().form_valid(form)
+        except User.DoesNotExist:
+            raise ValidationError("Nie znaleziono takiego maila")
+
+
+
+
+
 
 
 

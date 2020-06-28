@@ -29,9 +29,12 @@ document.addEventListener("DOMContentLoaded", function () {
             /**
              * Pagination buttons
              */
+
+
             this.$el.addEventListener("click", e => {
                 if (e.target.classList.contains("btn") && e.target.parentElement.parentElement.classList.contains("help--slides-pagination")) {
                     this.changePage(e);
+
                 }
             });
         }
@@ -47,15 +50,20 @@ document.addEventListener("DOMContentLoaded", function () {
             // Current slide
             this.currentSlide = $btn.parentElement.dataset.id;
 
+
             // Slides active class change
             this.$slidesContainers.forEach(el => {
                 el.classList.remove("active");
 
                 if (el.dataset.id === this.currentSlide) {
                     el.classList.add("active");
+
+
                 }
+
             });
         }
+
 
         /**
          * TODO: callback to page change event
@@ -65,6 +73,31 @@ document.addEventListener("DOMContentLoaded", function () {
             const page = e.target.dataset.page;
 
             console.log(page);
+
+            var $fund_buttons=$("#fund_first").find("a");
+            $fund_buttons.each(function () {
+                $(this).one("click",function (event) {
+                    event.preventDefault();
+                    var page_n=$(this).data("page");
+                    $.get({
+                        url:"/pagination_fund/",
+                        data:{
+                            page_n:page_n
+                        }
+                    }).done(function (repsonse) {
+                        var $pagin=$("#response_pagin");
+                        $pagin.html(repsonse)
+
+                    })
+                        .fail(function (e) {
+                            alert("nie poszlo");
+                            console.log(e)
+
+                        })
+
+                })
+
+            });
         }
     }
 

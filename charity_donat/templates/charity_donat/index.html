@@ -79,27 +79,28 @@
 
       <!-- SLIDE 1 -->
       <div class="help--slides active" data-id="1">
-        <p>W naszej bazie znajdziesz listę zweryfikowanych Fundacji, z którymi współpracujemy. Możesz sprawdzić czym się zajmują, komu pomagają i czego potrzebują.</p>
-        {% for institution in institutions_fund %}
+        <p >W naszej bazie znajdziesz listę zweryfikowanych Fundacji, z którymi współpracujemy. Możesz sprawdzić czym się zajmują, komu pomagają i czego potrzebują.</p>
+          <div id="response_pagin">
+          {% for institution in first_page %}
         <ul class="help--slides-items">
+            <li>
+                <div class="col">
+                    <div class="title">{{ institution.name }}"</div>
+                    <div class="subtitle">{{ institution.description }}</div>
+                </div>
+                <div class="col">
+                    {% for ic in institution.categories.all %}
+                        <span class="text">{{ ic.name }},</span>
+                        {% endfor %}
+                </div>
+            </li>
+        </ul>
 
-          <li>
-            <div class="col">
-              <div class="title">{{ institution.name}}"</div>
-              <div class="subtitle">{{ institution.description }}</div>
-            </div>
-          <div class="col">
-                {% for ic in institution.categories.all %}
-                <span class="text">{{ ic.name}},</span>
-              {% endfor %}
-
+    {% endfor %}
           </div>
-          </li>
-            </ul>
-            {% endfor %}
 
 
-        <ul class="help--slides-pagination">
+        <ul id="fund_first" class="help--slides-pagination">
           <li><a href="#" class="btn btn--small btn--without-border active" data-page="1">1</a></li>
           <li><a href="#" class="btn btn--small btn--without-border" data-page="2">2</a></li>
           <li><a href="#" class="btn btn--small btn--without-border" data-page="3">3</a></li>
