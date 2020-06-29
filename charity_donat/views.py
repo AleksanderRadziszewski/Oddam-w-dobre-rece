@@ -229,11 +229,16 @@ class ChangePasswordView(FormView):
     form_class = ChangePasswordForm
     def form_valid(self, form):
         token=Token.objects.get(key=self.request.GET["token"])
+        password=form.cleaned_data.get("wprowadz_haslo")
+        password2=form.cleaned_data.get("powtorz_haslo")
         if token is not None:
-            user=token.user
-            user.set_password(form.cleaned_data["wprowadz_haslo"])
-            user.save()
-            return super().form_valid(form)
+            if password==password2:
+                user=token.user
+                user.set_password(form.cleaned_data["wprowadz_haslo"])
+                user.save()
+                return super().form_valid(form)
+            else:
+                raise ValidationError("Passwords need to match")
         else:
             return"Token not found"
 
@@ -253,7 +258,7 @@ class LinkToChangePasswordView(FormView):
                 token =Token.objects.get(user=user).key
                 send_mail(
                     "Reset password link",
-                    f"http://localhost:8000/change_password/?token={token}",
+                    f"http://localhost:8000/change_password/?token={token}"+"\#change-password",
                     "radziszewski.aleksander@gmail.com",
                     ["radziszewski.aleksander@gmail.com"],
                     fail_silently=False)
