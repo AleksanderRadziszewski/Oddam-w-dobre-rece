@@ -231,6 +231,7 @@ class ChangePasswordView(FormView):
         token=Token.objects.get(key=self.request.GET["token"])
         password=form.cleaned_data.get("wprowadz_haslo")
         password2=form.cleaned_data.get("powtorz_haslo")
+        validate_password(password, password_validators=validate_passwords(password, password2))
         if token is not None:
             if password==password2:
                 user=token.user
@@ -258,7 +259,7 @@ class LinkToChangePasswordView(FormView):
                 token =Token.objects.get(user=user).key
                 send_mail(
                     "Reset password link",
-                    f"http://localhost:8000/change_password/?token={token}"+"\#change-password",
+                    f"http://localhost:8000/change_password/?token={token}",
                     "radziszewski.aleksander@gmail.com",
                     ["radziszewski.aleksander@gmail.com"],
                     fail_silently=False)

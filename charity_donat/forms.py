@@ -17,7 +17,7 @@ def validate_passwords(password,password2):
     if not any(char.isupper() for char in password):
         raise ValidationError('Password must contain at least 1 uppercase letter.')
     if not any(char in special_characters for char in password):
-        raise ValidationError('Password must contain at least 1 letter.')
+        raise ValidationError('Password must contain at least one special letter from ' + special_characters)
 
 
 class ProfileEditForm(forms.ModelForm):
