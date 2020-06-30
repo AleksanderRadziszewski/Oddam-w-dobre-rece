@@ -17,7 +17,7 @@ def validate_passwords(password,password2):
     if not any(char.isupper() for char in password):
         raise ValidationError('Password must contain at least 1 uppercase letter.')
     if not any(char in special_characters for char in password):
-        raise ValidationError('Password must contain at least 1 letter.')
+        raise ValidationError('Password must contain at least 1 special letter from '+ special_characters)
 
 
 class ProfileEditForm(forms.ModelForm):
@@ -36,10 +36,4 @@ class ChangePasswordForm(forms.Form):
 class LinkToChangePasswordForm(forms.Form):
     email = forms.EmailField(required=True)
 
-    # def clean(self):
-    #     super().clean()
-    #     if self.cleaned_data["last_password"]!=request.user.password:
-    #         raise ValidationError("Password need to match")
-    #     elif self.cleaned_data["new_password"] != self.cleaned_data["new_password2"]:
-    #         raise ValidationError("Password need to match")
 
