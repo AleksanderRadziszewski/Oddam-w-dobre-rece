@@ -229,13 +229,19 @@ class ChangePasswordView(FormView):
     form_class = ChangePasswordForm
     def form_valid(self, form):
         token=Token.objects.get(key=self.request.GET["token"])
-        if token is not None:
-            user=token.user
-            user.set_password(form.cleaned_data["wprowadz_haslo"])
-            user.save()
-            return super().form_valid(form)
+        password=self.request.POST.get("wprowadz_haslo")
+        password2 = self.request.POST.get("powtorz_haslo")
+        validate_password(password,password_validators=validate_passwords(password,password2))
+        if password==password2:
+            if token is not None:
+                user=token.user
+                user.set_password(form.cleaned_data["wprowadz_haslo"])
+                user.save()
+                return super().form_valid(form)
+            else:
+                return"Token not found"
         else:
-            return"Token not found"
+            raise ValidationError("Passwords need to match")
 
 class LinkToChangePasswordView(FormView):
     form_class = LinkToChangePasswordForm
